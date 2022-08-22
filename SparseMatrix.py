@@ -226,3 +226,26 @@ class SparseMatrix:
             newROW = np.append(newROW, len(newV))
         # returning an object with the new vectors
         return SparseMatrix(newV, newCOL, newROW)
+    
+     def __mul__(self, arr):
+        if len(self.sparse_form[2])-1!=arr.shape[0]:
+            raise IndexError
+        else:
+            mat_arr=[]
+            row_ind_arr=[0]
+            nbr_row=0
+            sparse_list=[]
+            for i in range(len(self.sparse_form[2])-1):               
+                sum_elm=0
+                for j in range(self.sparse_form[2][i], self.sparse_form[2][i+1]):
+                    sum_elm=sum_elm+self.sparse_form[0][j]*arr[self.sparse_form[1][j]-1]
+                if sum_elm !=0:
+                    nbr_row=nbr_row+1
+                    mat_arr.append(sum_elm)  
+                row_ind_arr.append(nbr_row)
+            col_ind_arr= list(0 for i in range(0,arr.shape[0]))
+            sparse_list.append(mat_arr)
+            sparse_list.append(col_ind_arr)
+            sparse_list.append(row_ind_arr)
+            prod_sparse=SparseMatrix(*sparse_list)
+        return prod_sparse
