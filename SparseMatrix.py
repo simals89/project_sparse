@@ -249,3 +249,109 @@ class SparseMatrix:
             sparse_list.append(row_ind_arr)
             prod_sparse=SparseMatrix(*sparse_list)
         return prod_sparse
+
+     #nbr columns in sparse_1 and nbr rows in arr should be of different length for this test
+    def test_diff_size_arr_mult(self):
+        mat_1=np.matrix([[1, 2, 3], [4,5,6], [7, 8, 9]])
+        sparse_1=SparseMatrix(mat_1)
+        arr=np.matrix([[1], [1]])
+        try: 
+            sparse_1*arr
+        except IndexError:
+            pass
+        else:
+            raise AssertionError()
+            
+    #not_arr should be of any type other than array or list
+    def test_input_type_mult(self):  
+        mat_1=np.matrix([[1, 2, 3], [4,5,6], [7, 8, 9]])
+        try:
+            SparseMatrix(mat_1)*5
+        except AttributeError:
+            pass
+        else:
+            raise AssertionError()
+    
+    def test_small_array_mult(self):
+        mat_1=np.ndarray([1])
+        mat_2=np.ndarray([2, 3])
+        mat_3=np.matrix([[-1, 2], [2, -1]])
+        sparse_mat_1=SparseMatrix(mat_1)
+        sparse_mat_2=SparseMatrix(mat_2)
+        sparse_mat_3=SparseMatrix(mat_3)
+        arr_1=np.ndarray([2])
+        arr_2=np.ndarray([[4], [5]])
+        arr_3=np.ndarray([[1],[2]])
+        result_1=mat_1*arr_1
+        result_2=mat_2*arr_2
+        result_3=mat_3*arr_3
+        expected_1=SparseMatrix(np.ndarray([2]))
+        expected_2=SparseMatrix(np.ndarray([23]))
+        expected_3=SparseMatrix(np.ndarray([[3], [0]]))
+        errors = []
+
+        # replace assertions by conditions
+        if not result_1==expected_1:
+            errors.append("Error: wrong result when array has size 1")
+        if not result_2==expected_2:
+            errors.append("Error: wrong result when array has size 2")
+        if not result_3==expected_3:
+            errors.append("Error: wrong result when array has size 3")
+        assert not errors, "errors:\n{}".format("\n".join(errors))
+        
+    def test_large_array_mult(self):
+        arr_1=np.arange(1, 11)
+        arr_2=np.arange(1, 101)
+        arr_3=np.arange(1, 1001)
+        expected_1=np.zeros((10, 1))
+        expected_2=np.zeros((100, 1))
+        expected_3=np.zeros((1000, 1))
+        expected_1[8][0]=-10
+        expected_2[98][0]=-100
+        expected_3[998][0]=-1000
+        expected_1[9][0]=11
+        expected_2[99][0]=101
+        expected_3[999][0]=1001
+        exp_sparse_1=SparseMatrix(expected_1)
+        exp_sparse_2=SparseMatrix(expected_2)
+        exp_sparse_3=SparseMatrix(expected_3)
+        mat_1=np.zeros((10,10))
+        mat_2=np.zeros((100,100))
+        mat_3=np.zeros((1000,1000))
+        mat_list=[mat_1, mat_2, mat_3]
+        for i in range(0,3):
+            matrix=mat_list[i]
+            matrix[len(mat_list[i])-1][len(mat_list[i])-1]=2
+            matrix[0][0]=2
+            matrix[0][1]=-1
+            matrix[1][0]=-1
+            matrix[len(mat_list[i])-2][len(mat_list[i])-1]=-1
+            matrix[len(mat_list[i])-1][len(mat_list[i])-2]=-1
+        result_1=SparseMatrix(mat_1)*arr_1
+        result_2=SparseMatrix(mat_2)*arr_2
+        result_3=SparseMatrix(mat_3)*arr_3
+        
+        errors = []
+        if not result_1.sparse_form==exp_sparse_1.sparse_form:
+            errors.append("Error: wrong result when multiplying Sparse of size (10, 10")
+        if not result_2.sparse_form==expected_2.sparse_form:
+            errors.append("Error: wrong result when multiplying Sparse of size (100, 100")
+        if not result_3.sparse_form==expected_3.sparse_form:
+            errors.append("Error: wrong result when multiplying Sparse of size (1000, 1000")
+        assert not errors, "errors:\n{}".format("\n".join(errors))
+        
+    def test_empty_array_mult(self):
+        mat_1=np.ndarray([[1, 2, 3], [4,5,6], [7, 8, 9]])
+        arr_1=np.ndarray([[0],[0], [0]])
+        result_1=mat_1*arr_1
+        expected_1=SparseMatrix(np.ndarray([[0],[0], [0]]))
+        
+        assert allclose(result_1, expected_1, "multiplication with array with only zero elements does not return all zero SparseMatrix")
+    def test_empty_sparse_mult(self):
+        mat_1=np.ndarray([[0, 0, 0], [0,0,0], [0, 0, 0]])
+        arr_1=np.ndarray([[1],[2], [3]])
+        result_1=mat_1*arr_1
+        expected_1=SparseMatrix(np.ndarray([[0],[0], [0]]))
+        
+        assert allclose(result_1, expected_1, "multiplication with SparseMatrix with only zero elements does not return all zero SparseMatrix")
+            
